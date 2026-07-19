@@ -681,62 +681,35 @@ def instruction_decoder(line):
       arg_table[arg] = {"value":line[1 + i], "type":arg_type}
   inst_data = instruction_list.get(mnemonic)
   result += '{:02b}'.format(inst_data.get("mode"))
-  dest_bin = ""
-  arg_a_bin = ""
-  arg_b_bin = ""
-  imm_flag = "0"
-  if "dest" in arg_table:
-    inst_type_list = inst_data.get("dest")
-    if arg_table.get("dest").get("type") in inst_type_list:
-      dest_bin += '{:04b}'.format(reg_list.get(arg_table.get("dest").get("value")))
-    else:
-      dest_bin += '{:04b}'.format(0)
-  else:
-    if len(inst_data.get("dest")) > 0:
-      if inst_data.get("dest")[0] in reg_list:
-        dest_bin += '{:04b}'.format(reg_list.get(inst_data.get("dest")[0]))
-      else:
-        dest_bin += '{:04b}'.format(0)
-    else:
-      dest_bin += '{:04b}'.format(0)
-  if "arg_a" in arg_table:
-    inst_type_list = inst_data.get("arg_a")
-    if arg_table.get("arg_a").get("type") in inst_type_list:
-      arg_a_bin += '{:04b}'.format(reg_list.get(arg_table.get("arg_a").get("value")))
-    else:
-      arg_a_bin += '{:04b}'.format(0)
-  else:
-    if len(inst_data.get("arg_a")) > 0:
-      if inst_data.get("arg_a")[0] in reg_list:
-        arg_a_bin += '{:04b}'.format(reg_list.get(inst_data.get("arg_a")[0]))
-      else:
-        arg_a_bin += '{:04b}'.format(0)
-    else:
-      arg_a_bin += '{:04b}'.format(0)
-  if "arg_b" in arg_table:
-    inst_type_list = inst_data.get("arg_b")
-    if arg_table.get("arg_b").get("type") in inst_type_list:
-      match arg_table.get("arg_b").get("type"):
-        case "imm":
-          imm_flag = "1"
-          arg_b_bin += '{:016b}'.format(int(arg_table.get("arg_b").get("value")))
-        case "reg":
-          arg_b_bin += '0000{:04b}00000000'.format(reg_list.get(arg_table.get("arg_b").get("value")))
-    else:
-      arg_b_bin += '{:016b}'.format(0)
-  else:
-    if len(inst_data.get("arg_b")) > 0:
-      if inst_data.get("arg_b")[0] in reg_list:
-        arg_b_bin += '0000{:04b}00000000'.format(reg_list.get(inst_data.get("arg_b")[0]))
-      else:
-        arg_b_bin += '{:016b}'.format(0)
-    else:
-      arg_b_bin += '{:016b}'.format(0)
+  dest_value, _ = register_decoder("dest", arg_table, inst_data)
+  arg_a_value, _ = register_decoder("arg_a", arg_table, inst_data)
+  arg_b_value, imm_flag = register_decoder("arg_b", arg_table, inst_data)
+  dest_bin = '{:04b}'.format(dest_value)
+  arg_a_bin = '{:04b}'.format(arg_a_value)
+  arg_b_bin = '{:016b}'.format(arg_b_value) if imm_flag else '0000{:04b}00000000'.format(arg_b_value)
+  imm_flag = str(int(imm_flag))
   result += imm_flag
   result += '{:04b}'.format(inst_data.get("opecode"))
   result += dest_bin + arg_a_bin + arg_b_bin
   return result
-  
+
+def register_decoder(arg_key, arg_table, inst_data):
+  value = 0
+  imm_flag = False
+  inst_type_list = inst_data.get(arg_key)
+  if set(inst_type_list) & set(list(reg_list.keys())):
+    value = reg_list.get(list(set(inst_type_list) & set(list(reg_list.keys())))[0])
+  else:
+    if arg_key in arg_table:
+      arg_type = arg_table.get(arg_key).get("type")
+      if arg_type in inst_type_list:
+        match arg_type:
+          case "imm":
+            imm_flag = True
+            value = int(arg_table.get(arg_key).get("value"))
+          case "reg":
+            value = reg_list.get(arg_table.get(arg_key).get("value"))
+  return value, imm_flag
 
 
 inst_list = []
