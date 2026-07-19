@@ -1,0 +1,5 @@
+*.xml
+sim_build
+__pycache__
+program.hex
+real_instruction.txt
