@@ -1,0 +1,62 @@
+main:
+in r1
+in r2
+in r3
+in r4
+push r5
+push r4
+push r3
+push r2
+push r1
+call func_hanoi
+pop r1
+pop r2
+pop r3
+pop r4
+pop r5
+
+func_hanoi:
+cmp r1, zr
+je func_hanoi_if1_else
+func_hanoi_if1_then:
+sub r1, r1, 1
+mov r5, r3
+mov r3, r4
+mov r4, r5
+push r5
+push r4
+push r3
+push r2
+push r1
+call func_hanoi
+pop r1
+pop r2
+pop r3
+pop r4
+pop r5
+out r2
+out 5
+out r4
+out 5
+mov r5, r2
+mov r2, r3
+mov r3, r4
+mov r4, r5
+push r5
+push r4
+push r3
+push r2
+push r1
+call func_hanoi
+pop r1
+pop r2
+pop r3
+pop r4
+pop r5
+ret
+func_hanoi_if1_else:
+out r2
+out 5
+out r3
+out 5
+ret

@@ -1,0 +1,2 @@
+pytest
+cocotb==2.0
